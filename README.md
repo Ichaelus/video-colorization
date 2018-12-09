@@ -13,3 +13,11 @@
   * Activate the conda profile with `conda activate <profile name>`, in my case `fastai-cpu`
   * Run `./convert_video.sh https://www.youtube.com/watch?v=SwIcRSvQ_TY`
 * To change the default framerate (25), pass it as the second argument.
+* View the colorized video in the `results` directory.
+
+## Things it's like to implement
+
+* [ ] Adding an optional parameter that controls DeOldify's `render_factor`
+* [ ] Making it possible to colorize local videos (i.e. implementing a YT URL matcher, copying the local file if it doesn't match)
+* [ ] Guessing the `render_factor` based on a "ternary search". I.e. comparing the grayscale histogram of each frame with the original histogram, and thus evaluating if the result is feasible or not.
+* [ ] Dropping dependencies. I'd like to remove NodeJS and end up with `ffmpeg` + DeOldify dependencies.

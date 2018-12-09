@@ -141,7 +141,7 @@ for subdir, dirs, files in os.walk('original_frames'):
       frame = colorize_frame(visualizer, input_path, render_factor)
       save_frame(visualizer, frame, input_path)
 
-    #os.remove(input_path)
+    os.remove(input_path)
 
 
 print("All frames have been converted")

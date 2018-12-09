@@ -17,7 +17,12 @@ if [[ ("$1" != "") ]]; then
     npm -v > /dev/null 2>&1 || error_exit "Please install npm."
     npm list | grep  youtube-frames > /dev/null 2>&1 || error_exit "Please install the node package youtube-frames: npm install --save youtube-frames"
     which ffmpeg > /dev/null 2>&1 || error_exit "Please install ffmpeg. Run 'sudo apt-get install ffmpeg'"
-    mkdir -p colorize_frames
+    
+    rm -r original_frames
+    mkdir -p original_frames
+    rm -r colorized_frames
+    mkdir -p colorized_frames
+    mkdir -p results
 
     # Download a high-res audi and video version (mp4)
     # Transform high res video to frames
@@ -43,12 +48,12 @@ if [[ ("$1" != "") ]]; then
 
     # FFMPEG combines the audio input and frames to a new video
     # You might want to adjust the -r value for the output framerate(?)
-    ffmpeg -framerate $FRAMERATE -i "colorized_frames/video_output%03d.jpg" -i output-audio.mp3 colorized_video.mp4 || error_exit "Reassembling frames failed"
+    ffmpeg -framerate $FRAMERATE -i "colorized_frames/video_output%03d.jpg" -i output-audio.mp3 results/colorized_video.mp4 || error_exit "Reassembling frames failed"
 
     # Alternatively, you could reassemble the video in a wrong order, creating stunning videos
-    # ffmpeg -framerate $FRAMERATE -pattern_type glob -i "colorized_frames/video_output*.jpg" -i output-audio.mp3 colorized_video.mp4 || error_exit "Reassembling frames failed"
-    rm -r colorize_frames
-    xdg-open colorized_video.mp4
+    # ffmpeg -framerate $FRAMERATE -pattern_type glob -i "colorized_frames/video_output*.jpg" -i output-audio.mp3 results/colorized_video.mp4 || error_exit "Reassembling frames failed"
+    rm output-audio.mp3
+    xdg-open results/colorized_video.mp4
 else
     echo "Youtube video URL is empty"
 fi
