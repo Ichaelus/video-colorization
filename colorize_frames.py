@@ -125,7 +125,7 @@ def print_triple_status(triple:dict):
 plt.style.use('dark_background')
 torch.backends.cudnn.benchmark=True
 
-filters = [Colorizer(gpu=0, weights_path='./deoldify/colorize_gen_192.h5')]
+filters = [Colorizer34(gpu=None, weights_path='./deoldify/colorize_gen_192.h5')]
 visualizer = ModelImageVisualizer(filters, render_factor=42, results_dir='colorized_frames')
 
 for subdir, dirs, files in os.walk('original_frames'):

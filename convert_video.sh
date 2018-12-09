@@ -18,9 +18,17 @@ if [[ ("$1" != "") ]]; then
     npm list | grep  youtube-frames > /dev/null 2>&1 || error_exit "Please install the node package youtube-frames: npm install --save youtube-frames"
     which ffmpeg > /dev/null 2>&1 || error_exit "Please install ffmpeg. Run 'sudo apt-get install ffmpeg'"
     
-    rm -r original_frames
+    if [[ ! -d "deoldify" ]]; then
+        error_exit "Please clone and install DeOldify [https://github.com/jantic/DeOldify] into the folder 'deoldify' of this repository."
+    fi
+
+    if [[ ! -r "deoldify/colorize_gen_192.h5" ]]; then
+        error_exit "DeOldify weights must be available. Train the model or download them to 'deoldify/colorize_gen_192.h5'. [https://github.com/jantic/DeOldify#pretrained-weights]"
+    fi
+
+    rm -rf original_frames
     mkdir -p original_frames
-    rm -r colorized_frames
+    rm -rf colorized_frames
     mkdir -p colorized_frames
     mkdir -p results
 
