@@ -1,0 +1,6 @@
+*.mp4
+*.jpg
+*.mp3
+deoldify/*
+original_frames_*/*
+colorized_frames_*/*
