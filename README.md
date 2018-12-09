@@ -9,5 +9,7 @@
 * Follow their installation instructions. 
   * You should have a working copy of `fastai` inside that project folder
   * You should have a conda environment set up to run the colorization stuff
-  * Activate the latter with `conda activate <profile name>`
-* Run `./convert_video.sh https://www.youtube.com/watch?v=dPnEXx1vwVA`
+* Example for converting the "Dickson Experimental Sound Film (1894)" from YouTube:
+  * Activate the conda profile with `conda activate <profile name>`, in my case `fastai-cpu`
+  * Run `./convert_video.sh https://www.youtube.com/watch?v=SwIcRSvQ_TY`
+* To change the default framerate (25), pass it as the second argument.

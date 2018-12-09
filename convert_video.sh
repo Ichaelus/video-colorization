@@ -8,8 +8,9 @@ function error_exit {
     exit "${2:-1}"  ## Return a code specified by $2 or 1 by default.
 }
 
-if [[ ("$1" != "") && ("$2" != "") ]]; then
-    echo "Converting youtube video ($1) to frames with $2 fps"
+if [[ ("$1" != "") ]]; then
+    ["$2" == ""] && FRAMERATE=25 || FRAMERATE=$2
+    echo "Converting youtube video ($1) to frames with $FRAMERATE fps"
     
     # Checking dependencies
     nodejs -v > /dev/null 2>&1 || error_exit "Please install nodejs."
@@ -20,7 +21,7 @@ if [[ ("$1" != "") && ("$2" != "") ]]; then
 
     # Download a high-res audi and video version (mp4)
     # Transform high res video to frames
-    node video_to_frames.js $1 $2 > /dev/null || error_exit "Downloading or transforming video to frames failed."
+    node video_to_frames.js $1 $FRAMERATE > /dev/null || error_exit "Downloading or transforming video to frames failed."
 
     # let ffmpegProcess = spawn('ffmpeg', [
     # '-i', `${self.path}/${self.videoName}.mp4`,
@@ -35,17 +36,17 @@ if [[ ("$1" != "") && ("$2" != "") ]]; then
     # ]);
 
     # Extract audio from original video
-    ffmpeg -i original_frames/video_output_highestaudio.mp4 -q:a 0 -map a output-audio.mp3
+    ffmpeg -y -i original_frames/video_output_highestaudio.mp4 -q:a 0 -map a output-audio.mp3
 
     conda info --env | grep "*" | grep "fastai" > /dev/null || error_exit "Please install conda, create a conda profile 'fastai-cpu' and activate it (conda activate <>)"
     python3 colorize_frames.py || error_exit "Colorizing frames failed"
 
     # FFMPEG combines the audio input and frames to a new video
     # You might want to adjust the -r value for the output framerate(?)
-    ffmpeg -framerate $2 -i "colorized_frames/video_output%03d.jpg" -i output-audio.mp3 colorized_video.mp4 || error_exit "Reassembling frames failed"
+    ffmpeg -framerate $FRAMERATE -i "colorized_frames/video_output%03d.jpg" -i output-audio.mp3 colorized_video.mp4 || error_exit "Reassembling frames failed"
 
     # Alternatively, you could reassemble the video in a wrong order, creating stunning videos
-    # ffmpeg -framerate $2 -pattern_type glob -i "colorized_frames/video_output*.jpg" -i output-audio.mp3 colorized_video.mp4 || error_exit "Reassembling frames failed"
+    # ffmpeg -framerate $FRAMERATE -pattern_type glob -i "colorized_frames/video_output*.jpg" -i output-audio.mp3 colorized_video.mp4 || error_exit "Reassembling frames failed"
     rm -r colorize_frames
     xdg-open colorized_video.mp4
 else
