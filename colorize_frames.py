@@ -135,7 +135,7 @@ for subdir, dirs, files in os.walk('original_frames'):
     if file.lower().endswith('jpg'):
       original_histogram = calculate_grayscale_histogram(input_path)
       # Experimental: render_factor = ternary_search_best_render_factor(visualizer, original_histogram, input_path)
-      render_factor = 24
+      render_factor = 30
 
       print("Found the best render factor " + str(render_factor) + " for the image " + file)
       frame = colorize_frame(visualizer, input_path, render_factor)

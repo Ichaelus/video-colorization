@@ -15,6 +15,12 @@
 * To change the default framerate (25), pass it as the second argument.
 * View the colorized video in the `results` directory.
 
+## Example
+For the above example of the "Dickson Experimental Sound Film", you can see the results at 30fps with a render factor of 30 here:
+https://www.youtube.com/watch?v=kU3-m4Gc1Q8&feature=youtu.be
+
+This example was created using a very early version of both the ML model and this tool.
+
 ## Things it's like to implement
 
 * [ ] Adding an optional parameter that controls DeOldify's `render_factor`
