@@ -21,6 +21,10 @@ import numpy as np
 import cv2
 import math
 
+# Todo: Implement a GPU/CPU switch
+torch.cuda.set_device(0)
+torch.backends.cudnn.benchmark=True
+
 # Todo: Sort functions
 # Todo: Move to a class, add instance variables
 
@@ -125,7 +129,8 @@ def print_triple_status(triple:dict):
 plt.style.use('dark_background')
 torch.backends.cudnn.benchmark=True
 
-filters = [Colorizer34(gpu=None, weights_path='./deoldify/colorize_gen_192.h5')]
+# Todo: Add CPU switch (gpu=None)
+filters = [Colorizer34(gpu=0, weights_path='./deoldify/colorize_gen_192.h5')]
 visualizer = ModelImageVisualizer(filters, render_factor=42, results_dir='colorized_frames')
 
 for subdir, dirs, files in os.walk('original_frames'):
@@ -133,13 +138,19 @@ for subdir, dirs, files in os.walk('original_frames'):
     input_path = Path(os.path.join(subdir, file))
 
     if file.lower().endswith('jpg'):
-      original_histogram = calculate_grayscale_histogram(input_path)
+      # original_histogram = calculate_grayscale_histogram(input_path)
       # Experimental: render_factor = ternary_search_best_render_factor(visualizer, original_histogram, input_path)
-      render_factor = 30
 
-      print("Found the best render factor " + str(render_factor) + " for the image " + file)
+      #The higher the render_factor, the more GPU memory will be used and generally images will look better.  
+      #11GB can take a factor of 42 max.  Performance generally gracefully degrades with lower factors, 
+      #though you may also find that certain images will actually render better at lower numbers.  
+      #This tends to be the case with the oldest photos.
+      render_factor = 38
+
+      #print("Found the best render factor " + str(render_factor) + " for the image " + file)
       frame = colorize_frame(visualizer, input_path, render_factor)
       save_frame(visualizer, frame, input_path)
+      print("Colorized frame " + str(input_path))
 
     os.remove(input_path)
 

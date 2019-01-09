@@ -51,7 +51,7 @@ if [[ ("$1" != "") ]]; then
     # Extract audio from original video
     ffmpeg -y -i original_frames/video_output_highestaudio.mp4 -q:a 0 -map a output-audio.mp3
 
-    conda info --env | grep "*" | grep "fastai" > /dev/null || error_exit "Please install conda, create a conda profile 'fastai-cpu' and activate it (conda activate <>)"
+    conda info --env | grep "*" | grep "deoldify" > /dev/null || error_exit "Please install conda, create a conda profile 'deoldify' (see README of DeOldify) and activate it (conda activate deoldify)"
     python3 colorize_frames.py || error_exit "Colorizing frames failed"
 
     # FFMPEG combines the audio input and frames to a new video
@@ -61,7 +61,7 @@ if [[ ("$1" != "") ]]; then
     # Alternatively, you could reassemble the video in a wrong order, creating stunning videos
     # ffmpeg -framerate $FRAMERATE -pattern_type glob -i "colorized_frames/video_output*.jpg" -i output-audio.mp3 results/colorized_video.mp4 || error_exit "Reassembling frames failed"
     rm output-audio.mp3
-    xdg-open results/colorized_video.mp4
+    xdg-open results/colorized_video.mp4 &
 else
     echo "Youtube video URL is empty"
 fi
