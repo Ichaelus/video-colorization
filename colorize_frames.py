@@ -20,6 +20,7 @@ from itertools import repeat
 import numpy as np
 import cv2
 import math
+import time
 
 # Todo: Implement a GPU/CPU switch
 torch.cuda.set_device(0)
@@ -138,6 +139,7 @@ for subdir, dirs, files in os.walk('original_frames'):
     input_path = Path(os.path.join(subdir, file))
 
     if file.lower().endswith('jpg'):
+      start_time = time.time()
       # original_histogram = calculate_grayscale_histogram(input_path)
       # Experimental: render_factor = ternary_search_best_render_factor(visualizer, original_histogram, input_path)
 
@@ -150,7 +152,8 @@ for subdir, dirs, files in os.walk('original_frames'):
       #print("Found the best render factor " + str(render_factor) + " for the image " + file)
       frame = colorize_frame(visualizer, input_path, render_factor)
       save_frame(visualizer, frame, input_path)
-      print("Colorized frame " + str(input_path))
+      end_time = time.time()
+      print("Colorized frame " + str(input_path) + " in " + str(end_time - start_time) + " seconds.")
 
     os.remove(input_path)
 

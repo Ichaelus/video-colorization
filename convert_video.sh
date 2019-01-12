@@ -51,7 +51,7 @@ if [[ ("$1" != "") ]]; then
     # Extract audio from original video
     ffmpeg -y -i original_frames/video_output_highestaudio.mp4 -q:a 0 -map a output-audio.mp3
 
-    conda info --env | grep "*" | grep "deoldify" > /dev/null || error_exit "Please install conda, create a conda profile 'deoldify' (see README of DeOldify) and activate it (conda activate deoldify)"
+    conda info --env | grep "*" | grep "*" > /dev/null || error_exit "Please install conda, create a conda profile 'deoldify' (see README of DeOldify) and activate it (conda activate deoldify)"
     python3 colorize_frames.py || error_exit "Colorizing frames failed"
 
     # FFMPEG combines the audio input and frames to a new video
