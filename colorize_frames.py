@@ -20,6 +20,7 @@ from itertools import repeat
 import numpy as np
 import cv2
 import math
+import re
 import time
 
 # Todo: Implement a GPU/CPU switch
@@ -127,6 +128,14 @@ def print_triple_status(triple:dict):
   print(f'Searching render factors[{left_border}, {right_border}] - current correlations:')
   print(f'(left, center, right) = ({left_correlation}, {center_correlation}, {right_correlation})')
 
+def extract_frame_number_from_file(file_name):
+  # The files have known names such as "video_output043.jpg", we want to extract the "043" part
+  matches = re.search('(\d+)\.', file_name)
+  if matches:
+    return int(matches.group(1))
+  else:
+    return 0 # Handle all non-frame files the same way
+
 plt.style.use('dark_background')
 torch.backends.cudnn.benchmark=True
 
@@ -134,8 +143,10 @@ torch.backends.cudnn.benchmark=True
 filters = [Colorizer34(gpu=0, weights_path='./deoldify/colorize_gen_192.h5')]
 visualizer = ModelImageVisualizer(filters, render_factor=42, results_dir='colorized_frames')
 
+print() # Add a newline
 for subdir, dirs, files in os.walk('original_frames'):
-  for file in files:
+
+  for file in sorted(files, key=extract_frame_number_from_file):
     input_path = Path(os.path.join(subdir, file))
 
     if file.lower().endswith('jpg'):
@@ -153,9 +164,9 @@ for subdir, dirs, files in os.walk('original_frames'):
       frame = colorize_frame(visualizer, input_path, render_factor)
       save_frame(visualizer, frame, input_path)
       end_time = time.time()
-      print("Colorized frame " + str(input_path) + " in " + str(end_time - start_time) + " seconds.")
+      print("\rColorized frame " + str(input_path) + " in " + str(round(end_time - start_time, 2)) + " seconds.", end='')
 
     os.remove(input_path)
 
-
+print() # Add a newline
 print("All frames have been converted")
