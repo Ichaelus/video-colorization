@@ -1,29 +1,77 @@
+# Video Colorization
+Good thing we live in the future, and better still that there is open source software. [jantic](https://github.com/jantic) has created the awesome software [DeOldify](https://github.com/jantic/DeOldify) that is colorizing images based on deep learning, and this is an attempt to apply his software to videos, frame by frame.
+
+
 ## System requirements
-* This software has been tested on Ubuntu Mate 18.04, other Linux distributions might be able to run it with minor adjustments
-* Converting a video using machine learning requires some heavy lifting, you are doing better with a CUDA-supporting GPU.
-  I developed this program using a modern CPU only, so you should do fine in either case - just slower.
-* Have >= 16GB of RAM, and allow your system to swap a litte bit. The "render_factor" of DeOldify seems to be limited by your RAM capacity, and it influences the maximum outcome of the colorization. On the other hand, choosing a smaller render_factor means your frames are converted _way_ faster, so feel free to experiment here.
+* This software has been tested on **Ubuntu** Mate **18.04**, other Linux distributions might be able to run it with minor or no adjustments.
+* Converting a video using machine learning requires some heavy lifting, which means in this case that your machine needs a **[CUDA-supporting GPU](https://developer.nvidia.com/cuda-gpus)**. A very eary version of this script supported CPU-execution, but the speed loss is somewhere near factor 10.
+* The amount of **GPU RAM** you have limits the quality of the result.
 
 ## Build instruction
-* Clone [DeOldify](https://github.com/jantic/DeOldify/) into the `deoldify` subfolder
-* Follow their installation instructions. 
-  * You should have a working copy of `fastai` inside that project folder
-  * You should have a conda environment set up to run the colorization stuff
-* Example for converting the "Dickson Experimental Sound Film (1894)" from YouTube:
-  * Activate the conda profile with `conda activate <profile name>`, in my case `fastai-cpu`
-  * Run `./convert_video.sh https://www.youtube.com/watch?v=SwIcRSvQ_TY`
-* To change the default framerate (25), pass it as the second argument.
-* View the colorized video in the `results` directory.
+* Clone [DeOldify](https://github.com/jantic/DeOldify/#easy-install) into the `deoldify` subfolder
+  
+  `git clone git@github.com:jantic/DeOldify.git deoldify`
+* Follow their installation instructions. You should at least have a **conda** environment set up to run the colorization stuff and downloaded the pretrained weights.
 
-## Example
+  `conda activate deoldify`
+* Colorize your own video! The script will tell you about further missing dependencies.
+
+  `./colorize_video.sh`
+
+## Command reference
+These commands are using a sample video from YouTube, the historical milestone "Dickson Experimental Sound Film (1894)".
+
+`./colorize_video.sh <YOUTUBE_VIDEO_URL> <FRAMERATE>`
+
+<table>
+  <tr>
+    <th>Fragment</th>
+    <th>Explanation</th>
+  </tr>
+  <tr>
+    <td><b>./colorize_video.sh</b></td>
+    <td>The main program executable. To be called for any video conversion.</td>
+  </tr>
+  </tr>
+  <tr>
+    <td><b>YOUTUBE_VIDEO_URL</b></td>
+    <td>Required parameter. The full URL to a YouTube video, e.g. "https://www.youtube.com/watch?v=SwIcRSvQ_TY"</td>
+  </tr>
+  </tr>
+  <tr>
+    <td><b>FRAMERATE</b></td>
+    <td>Optional parameter. The framerate of the original and resulting video. Can be inspected in YouTube by activating "Statistics for nerds". Default value: 25.</td>
+  </tr>
+</table>
+
+
+You can view the colorized video in the `results` directory.
+
+## Examples
 For the above example of the "Dickson Experimental Sound Film", you can see the results at 30fps with a render factor of 30 here:
 https://www.youtube.com/watch?v=kU3-m4Gc1Q8&feature=youtu.be
 
-This example was created using a very early version of both the ML model and this tool.
+This example was created using a very early version of both the machine learning model and this tool.
+
+Some more examples:
+
+[![Colorized Dickson Experimental Sound Film](https://img.youtube.com/vi/kU3-m4Gc1Q8/0.jpg)](https://www.youtube.com/watch?v=kU3-m4Gc1Q8 "Colorized Dickson Experimental Sound Film")
+
+_**Dickson Experimental Sound Film**_
+
+[![Colorized Chaplin Modern Times 'non-sense song'](https://img.youtube.com/vi/7VQaW1RZcU4/0.jpg)](https://www.youtube.com/watch?v=7VQaW1RZcU4 "Chaplin Modern Times 'non-sense song'")
+
+_**Chaplin Modern Times 'non-sense song'**_
+
+[![Colorized video: Oliver Heldens feat. RUMORS - Ghost](https://img.youtube.com/vi/1hGzCKObrlY/0.jpg)](https://www.youtube.com/watch?v=1hGzCKObrlY "Oliver Heldens feat. RUMORS - Ghost")
+
+_**Oliver Heldens feat. RUMORS - Ghost**_
+
 
 ## Things it's like to implement
 
+* [ ] Guessing the best value for DeOldify's parameter `render_factor`. It depends on the users GPU-RAM, and will vary for each hardware. Higher is better.
 * [ ] Adding an optional parameter that controls DeOldify's `render_factor`
-* [ ] Making it possible to colorize local videos (i.e. implementing a YT URL matcher, copying the local file if it doesn't match)
+* [ ] Guessing the input format (Youtube or local mp4 video) and allowing both.
 * [ ] Guessing the `render_factor` based on a "ternary search". I.e. comparing the grayscale histogram of each frame with the original histogram, and thus evaluating if the result is feasible or not.
-* [ ] Dropping dependencies. I'd like to remove NodeJS and end up with `ffmpeg` + DeOldify dependencies.
+* [ ] Supporting short Youtube URLs: e.g. https://youtu.be/kU3-m4Gc1Q8

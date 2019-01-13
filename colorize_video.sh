@@ -9,18 +9,18 @@ function error_exit {
 }
 
 if [[ ("$1" != "") ]]; then
+    YOUTUBE_URL=$1
     [[ "${2}" == "" ]] && FRAMERATE=25 || FRAMERATE=$2
-    echo "Converting youtube video ($1) to frames with $FRAMERATE fps"
+    echo "Converting youtube video ($YOUTUBE_URL) to frames with $FRAMERATE fps"
     
     echo "Checking dependencies.."
     nodejs -v > /dev/null 2>&1 || error_exit "Please install nodejs."
     npm -v > /dev/null 2>&1 || error_exit "Please install npm."
-    npm list | grep  youtube-frames > /dev/null 2>&1 || error_exit "Please install the node package youtube-frames: npm install --save youtube-frames"
+    ytdl -V > /dev/null 2>&1  || error_exit "Please install the node package ytdl (globally): sudo npm -g install ytdl"
     which ffmpeg > /dev/null 2>&1 || error_exit "Please install ffmpeg. Run 'sudo apt-get install ffmpeg'"
     if [[ ! -d "deoldify" ]]; then
         error_exit "Please clone and install DeOldify [https://github.com/jantic/DeOldify] into the folder 'deoldify' of this repository."
     fi
-
     if [[ ! -r "deoldify/colorize_gen_192.h5" ]]; then
         error_exit "DeOldify weights must be available. Train the model or download them to 'deoldify/colorize_gen_192.h5'. [https://github.com/jantic/DeOldify#pretrained-weights]"
     fi
@@ -34,36 +34,43 @@ if [[ ("$1" != "") ]]; then
     mkdir -p results
 
     echo "Downloading video in highest resolution and tranforming it to frames.."
-    node video_to_frames.js $1 $FRAMERATE > /dev/null || error_exit "Downloading or transforming video to frames failed."
+    ytdl $YOUTUBE_URL --quality highestvideo > original_video.mp4 || error_exit "Failed to download video."
+    ffmpeg -i original_video.mp4 \
+        -f image2 \
+        -bt '20M' \
+        -vf "fps=${FRAMERATE}" \
+        -loglevel panic \
+        -nostdin \
+        ./original_frames/frame%03d.jpg || error_exit "Failed to convert video to frames."
+    rm original_video.mp4
 
-    # let ffmpegProcess = spawn('ffmpeg', [
-    # '-i', `${self.path}/${self.videoName}.mp4`,
-    # '-ss', `${begin}`,
-    # '-to', `${end}`,
-    # '-f', 'image2',
-    # '-bt', '20M',
-    # '-vf', `fps=${self.fps}`,
-    # `${self.path}/${self.videoName}%03d.jpg`,
-    # '-loglevel', 'panic',
-    # '-nostdin'
-    # ]);
-
-    echo "Downloading the video with the highest audio version.."
-    ffmpeg -y -i original_frames/video_output_highestaudio.mp4 -q:a 0 -map a output-audio.mp3 > /dev/null 2>&1
+    echo "Downloading and extracting highest quality audio from original video.."
+    ytdl $YOUTUBE_URL --quality highestaudio | ffmpeg -y \
+        -i pipe:0 \
+        -q:a 0 \
+        -map a \
+        -loglevel panic \
+        original_audio.mp3 || error_exit "Failed to download video or extract audio."
 
     echo "Colorizing each frame.."
     python3 colorize_frames.py || error_exit "Colorizing frames failed"
 
     # FFMPEG combines the audio input and frames to a new video
     # You might want to adjust the -r value for the output framerate(?)
+    # Alternatively to the image input below, you could reassemble the video in a wrong(!) order, creating stunning videos
+    # -pattern_type glob -i "colorized_frames/frame*.jpg"
     echo "Reassembling the now colorized video.."
-    YTID=`expr match $1 '.*[?&]v=\([^&]*\)'` # Extract the YouTube video id fragment.
+    YTID=`expr match $YOUTUBE_URL '.*[?&]v=\([^&]*\)'` # Extract the YouTube video id fragment.
     RESULT_FILENAME="colorized_YT_${YTID}_fps_${FRAMERATE}.mp4"
-    ffmpeg -framerate $FRAMERATE -i "colorized_frames/video_output%03d.jpg" -i output-audio.mp3 "results/${RESULT_FILENAME}" -v 0s || error_exit "Reassembling frames failed"
-
-    # Alternatively, you could reassemble the video in a wrong order, creating stunning videos
-    # ffmpeg -framerate $FRAMERATE -pattern_type glob -i "colorized_frames/video_output*.jpg" -i output-audio.mp3 results/colorized_video.mp4 || error_exit "Reassembling frames failed"
-    rm output-audio.mp3
+    ffmpeg -framerate $FRAMERATE \
+        -i "colorized_frames/frame%03d.jpg" \
+        -i original_audio.mp3 \
+        -loglevel panic \
+        -y \
+        -hide_banner \
+        -nostats \
+        "results/${RESULT_FILENAME}" || error_exit "Reassembling frames failed"
+    rm original_audio.mp3
     
     # Open the colorized video, without tying it to the process
     echo "Et voila! You can find the transformed video in 'results/${RESULT_FILENAME}'"

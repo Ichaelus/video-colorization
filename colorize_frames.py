@@ -129,7 +129,7 @@ def print_triple_status(triple:dict):
   print(f'(left, center, right) = ({left_correlation}, {center_correlation}, {right_correlation})')
 
 def extract_frame_number_from_file(file_name):
-  # The files have known names such as "video_output043.jpg", we want to extract the "043" part
+  # The files have known names such as "frame043.jpg", we want to extract the "043" part
   matches = re.search('(\d+)\.', file_name)
   if matches:
     return int(matches.group(1))
@@ -144,12 +144,16 @@ filters = [Colorizer34(gpu=0, weights_path='./deoldify/colorize_gen_192.h5')]
 visualizer = ModelImageVisualizer(filters, render_factor=42, results_dir='colorized_frames')
 
 print() # Add a newline
-for subdir, dirs, files in os.walk('original_frames'):
+frame_path = "original_frames"
+total_frames = len(next(os.walk(frame_path))[2]) # This avoids subdirectories and includes files only
+
+for subdir, dirs, files in os.walk(frame_path):
 
   for file in sorted(files, key=extract_frame_number_from_file):
     input_path = Path(os.path.join(subdir, file))
 
     if file.lower().endswith('jpg'):
+      frame_number = extract_frame_number_from_file(file)
       start_time = time.time()
       # original_histogram = calculate_grayscale_histogram(input_path)
       # Experimental: render_factor = ternary_search_best_render_factor(visualizer, original_histogram, input_path)
@@ -164,7 +168,9 @@ for subdir, dirs, files in os.walk('original_frames'):
       frame = colorize_frame(visualizer, input_path, render_factor)
       save_frame(visualizer, frame, input_path)
       end_time = time.time()
-      print("\rColorized frame " + str(input_path) + " in " + str(round(end_time - start_time, 2)) + " seconds.", end='')
+      elapsed = round(end_time - start_time, 2)
+      eta = round((total_frames - frame_number - 1) * elapsed, 2) # frame numbers are zero indexed
+      print("\rColorized frame " + str(frame_number) + " in " + str(elapsed) + " seconds. Total: " + str(total_frames) + " frames. ETA " + str(eta) + " seconds left.", end='')
 
     os.remove(input_path)
 
