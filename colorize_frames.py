@@ -20,6 +20,12 @@ from itertools import repeat
 import numpy as np
 import cv2
 import math
+import re
+import time
+
+# Todo: Implement a GPU/CPU switch
+torch.cuda.set_device(0)
+torch.backends.cudnn.benchmark=True
 
 # Todo: Sort functions
 # Todo: Move to a class, add instance variables
@@ -122,26 +128,51 @@ def print_triple_status(triple:dict):
   print(f'Searching render factors[{left_border}, {right_border}] - current correlations:')
   print(f'(left, center, right) = ({left_correlation}, {center_correlation}, {right_correlation})')
 
+def extract_frame_number_from_file(file_name):
+  # The files have known names such as "frame043.jpg", we want to extract the "043" part
+  matches = re.search('(\d+)\.', file_name)
+  if matches:
+    return int(matches.group(1))
+  else:
+    return 0 # Handle all non-frame files the same way
+
 plt.style.use('dark_background')
 torch.backends.cudnn.benchmark=True
 
-filters = [Colorizer34(gpu=None, weights_path='./deoldify/colorize_gen_192.h5')]
+# Todo: Add CPU switch (gpu=None)
+filters = [Colorizer34(gpu=0, weights_path='./deoldify/colorize_gen_192.h5')]
 visualizer = ModelImageVisualizer(filters, render_factor=42, results_dir='colorized_frames')
 
-for subdir, dirs, files in os.walk('original_frames'):
-  for file in files:
+print() # Add a newline
+frame_path = "original_frames"
+total_frames = len(next(os.walk(frame_path))[2]) # This avoids subdirectories and includes files only
+
+for subdir, dirs, files in os.walk(frame_path):
+
+  for file in sorted(files, key=extract_frame_number_from_file):
     input_path = Path(os.path.join(subdir, file))
 
     if file.lower().endswith('jpg'):
-      original_histogram = calculate_grayscale_histogram(input_path)
+      frame_number = extract_frame_number_from_file(file)
+      start_time = time.time()
+      # original_histogram = calculate_grayscale_histogram(input_path)
       # Experimental: render_factor = ternary_search_best_render_factor(visualizer, original_histogram, input_path)
-      render_factor = 30
 
-      print("Found the best render factor " + str(render_factor) + " for the image " + file)
+      #The higher the render_factor, the more GPU memory will be used and generally images will look better.  
+      #11GB can take a factor of 42 max.  Performance generally gracefully degrades with lower factors, 
+      #though you may also find that certain images will actually render better at lower numbers.  
+      #This tends to be the case with the oldest photos.
+      render_factor = 38
+
+      #print("Found the best render factor " + str(render_factor) + " for the image " + file)
       frame = colorize_frame(visualizer, input_path, render_factor)
       save_frame(visualizer, frame, input_path)
+      end_time = time.time()
+      elapsed = round(end_time - start_time, 2)
+      eta = round((total_frames - frame_number - 1) * elapsed, 2) # frame numbers are zero indexed
+      print("\rColorized frame " + str(frame_number) + " in " + str(elapsed) + " seconds. Total: " + str(total_frames) + " frames. ETA " + str(eta) + " seconds left.", end='')
 
     os.remove(input_path)
 
-
+print() # Add a newline
 print("All frames have been converted")
