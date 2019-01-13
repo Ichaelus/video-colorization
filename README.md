@@ -8,10 +8,11 @@ Good thing we live in the future, and better still that there is open source sof
 * The amount of **GPU RAM** you have limits the quality of the result.
 
 ## Build instruction
-* Clone [DeOldify](https://github.com/jantic/DeOldify/#easy-install) into the `deoldify` subfolder
-  
-  `git clone git@github.com:jantic/DeOldify.git deoldify`
-* Follow their installation instructions. You should at least have a **conda** environment set up to run the colorization stuff and downloaded the pretrained weights.
+* Clone this repository [including the "DeOldify" submodule](https://blog.github.com/2016-02-01-working-with-submodules/):
+
+`git clone --recursive git@github.com:Ichaelus/video-colorization.git`
+
+* Follow the [installation instructions of DeOldify](https://github.com/jantic/DeOldify/#easy-install). You should at least have a **conda** environment set up to run the colorization stuff and downloaded the pretrained weights.
 
   `conda activate deoldify`
 * Colorize your own video! The script will tell you about further missing dependencies.
