@@ -75,4 +75,3 @@ _**Oliver Heldens feat. RUMORS - Ghost**_
 * [ ] Adding an optional parameter that controls DeOldify's `render_factor`
 * [ ] Guessing the input format (Youtube or local mp4 video) and allowing both.
 * [ ] Guessing the `render_factor` based on a "ternary search". I.e. comparing the grayscale histogram of each frame with the original histogram, and thus evaluating if the result is feasible or not.
-* [ ] Supporting short Youtube URLs: e.g. https://youtu.be/kU3-m4Gc1Q8

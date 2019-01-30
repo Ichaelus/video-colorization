@@ -24,7 +24,7 @@ if [[ ("$1" != "") ]]; then
     if [[ ! -r "deoldify/colorize_gen_192.h5" ]]; then
         error_exit "DeOldify weights must be available. Train the model or download them to 'deoldify/colorize_gen_192.h5'. [https://github.com/jantic/DeOldify#pretrained-weights]"
     fi
-    conda info --env | grep "*" | grep "*" > /dev/null || error_exit "Please install conda, create a conda profile 'deoldify' (see README of DeOldify) and activate it (conda activate deoldify)"
+    conda info | grep "active environment : [^base]" > /dev/null || error_exit "Please install conda, create a conda profile 'deoldify' (see README of DeOldify) and activate it (conda activate deoldify)"
 
     echo "Removing files from previous video convertions.."
     rm -rf original_frames
@@ -60,7 +60,7 @@ if [[ ("$1" != "") ]]; then
     # Alternatively to the image input below, you could reassemble the video in a wrong(!) order, creating stunning videos
     # -pattern_type glob -i "colorized_frames/frame*.jpg"
     echo "Reassembling the now colorized video.."
-    YTID=`expr match $YOUTUBE_URL '.*[?&]v=\([^&]*\)'` # Extract the YouTube video id fragment.
+    YTID=`expr match $YOUTUBE_URL '.*[?&]v=\([^&]*\)' || expr match $YOUTUBE_URL '.*youtu\.be\/\(.*\)'` # Extract the YouTube video id fragment.
     RESULT_FILENAME="colorized_YT_${YTID}_fps_${FRAMERATE}.mp4"
     ffmpeg -framerate $FRAMERATE \
         -i "colorized_frames/frame%03d.jpg" \
@@ -69,12 +69,12 @@ if [[ ("$1" != "") ]]; then
         -y \
         -hide_banner \
         -nostats \
-        "results/${RESULT_FILENAME}" || error_exit "Reassembling frames failed"
+        "results/$(echo $RESULT_FILENAME | tr -d ' \n')" || error_exit "Reassembling frames failed"
     rm original_audio.mp3
     
     # Open the colorized video, without tying it to the process
-    echo "Et voila! You can find the transformed video in 'results/${RESULT_FILENAME}'"
-    xdg-open "results/${RESULT_FILENAME}" >/dev/null 2>&1 & disown
+    echo "Et voila! You can find the transformed video in 'results/$(echo $RESULT_FILENAME | tr -d ' \n')'"
+    xdg-open "results/$(echo $RESULT_FILENAME | tr -d ' \n')" >/dev/null 2>&1 & disown
 else
     echo "Youtube video URL is empty"
 fi
